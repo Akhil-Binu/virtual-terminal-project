@@ -175,13 +175,36 @@ html, body {
   flex-shrink: 0;
 }
 
+.sidebar-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.sidebar-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--fg-dim);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s;
+  display: none;
+}
+
+.sidebar-close-btn:hover {
+  color: var(--red);
+  background: rgba(255, 85, 85, 0.15);
+}
+
 .sidebar-title {
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--fg-dim);
-  margin-bottom: 8px;
 }
 
 .sidebar-search {
@@ -808,31 +831,300 @@ pre.term-top  {
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--fg-dim); }
 
-/* ── Responsive ─────────────────────────────────────────── */
+/* ── Mobile View Tabs & Helpers ──────────────────────────── */
+.mobile-only { display: none !important; }
+.desktop-only { display: inline-flex !important; }
+
+#mobile-view-tabs {
+  display: none;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border-dim);
+  border-radius: 99px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.m-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--fg-dim);
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--font-ui);
+  white-space: nowrap;
+}
+
+.m-tab-btn.active {
+  background: var(--purple);
+  color: #1e1f29;
+  font-weight: 700;
+}
+
+/* Mobile View Switcher States */
+#right-pane.view-lesson-only #lesson-pane {
+  display: block !important;
+  flex: 1 1 100% !important;
+  height: 100% !important;
+  max-height: 100% !important;
+}
+#right-pane.view-lesson-only #hpanel-resizer,
+#right-pane.view-lesson-only #terminal-pane {
+  display: none !important;
+}
+
+#right-pane.view-terminal-only #terminal-pane {
+  display: flex !important;
+  flex: 1 1 100% !important;
+  height: 100% !important;
+  max-height: 100% !important;
+}
+#right-pane.view-terminal-only #hpanel-resizer,
+#right-pane.view-terminal-only #lesson-pane {
+  display: none !important;
+}
+
+/* ── Responsive: Medium Tablets & Laptops (max-width: 1024px) ─ */
+@media (max-width: 1024px) {
+  #sidebar {
+    width: 260px;
+    min-width: 220px;
+  }
+  #lesson-pane {
+    padding: 16px 20px;
+  }
+  .progress-bar-track {
+    width: 110px;
+  }
+}
+
+/* ── Responsive: Tablets & Mobiles (max-width: 768px) ────────── */
 @media (max-width: 768px) {
+  .mobile-only { display: flex !important; }
+  .desktop-only { display: none !important; }
+
+  #sidebar-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-close-btn {
+    display: inline-flex !important;
+  }
+
+  /* Slide-over Drawer Sidebar */
   #sidebar {
     position: fixed;
     top: 0;
     left: 0;
     height: 100vh;
-    z-index: 300;
+    height: 100dvh;
+    z-index: 400;
     transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    width: 80vw !important;
-    max-width: 340px;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 82vw !important;
+    max-width: 320px;
+    box-shadow: 4px 0 30px rgba(0, 0, 0, 0.7);
   }
 
-  #sidebar.sidebar-open { transform: translateX(0); }
+  #sidebar.sidebar-open {
+    transform: translateX(0);
+  }
 
-  #panel-resizer { display: none; }
-  #sidebar-toggle { display: block; }
+  #sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(2px);
+    z-index: 350;
+    display: none;
+  }
 
-  #right-pane { width: 100%; }
-  #lesson-pane { padding: 14px 16px; }
+  #sidebar-overlay:not(.hidden) {
+    display: block;
+  }
 
-  #terminal-pane { height: 300px; }
+  #panel-resizer {
+    display: none !important;
+  }
 
-  .welcome-banner { font-size: 0.6rem; }
+  #right-pane {
+    width: 100%;
+  }
+
+  #lesson-pane {
+    padding: 14px 16px;
+  }
+
+  #terminal-pane {
+    height: 280px;
+    min-height: 160px;
+  }
+
+  .lesson-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 8px;
+  }
+
+  .lesson-actions .btn {
+    justify-content: center;
+  }
+
+  .welcome-banner {
+    font-size: 0.58rem;
+    line-height: 1.3;
+  }
+}
+
+/* ── Responsive: Smartphones (max-width: 520px) ──────────────── */
+@media (max-width: 520px) {
+  #topbar {
+    padding: 0 8px;
+    height: 44px;
+    gap: 6px;
+  }
+
+  .topbar-left {
+    gap: 6px;
+  }
+
+  .topbar-logo .logo-text {
+    display: none;
+  }
+
+  .topbar-progress {
+    gap: 6px;
+  }
+
+  .topbar-progress .progress-bar-track {
+    width: 60px;
+  }
+
+  #progress-label {
+    font-size: 0.72rem;
+  }
+
+  .topbar-right {
+    gap: 5px;
+  }
+
+  .btn-topbar {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+
+  .btn-topbar .btn-text {
+    display: none;
+  }
+
+  .btn-topbar .btn-icon {
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  /* Abbreviate terminal prompt to ~/path$ on small mobile */
+  .prompt-user, .prompt-at, .prompt-host, .prompt-colon {
+    display: none;
+  }
+
+  .term-input-row {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .term-input-area {
+    min-width: 120px;
+  }
+
+  .lesson-title {
+    font-size: 1.1rem;
+  }
+
+  .task-box {
+    padding: 10px 12px;
+  }
+
+  .modal-dialog {
+    width: 96vw;
+    max-width: 96vw;
+    height: 90vh;
+    max-height: 90vh;
+  }
+
+  .modal-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 12px;
+  }
+
+  .modal-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .modal-body {
+    grid-template-columns: 1fr;
+    padding: 12px;
+    gap: 8px;
+  }
+}
+
+/* ── Responsive: Extra Small Screens (max-width: 360px) ───────── */
+@media (max-width: 360px) {
+  .topbar-progress {
+    display: none;
+  }
+
+  #mobile-view-tabs .m-tab-btn {
+    padding: 3px 6px;
+    font-size: 0.68rem;
+  }
+
+  .lesson-header {
+    padding: 10px;
+  }
+
+  .lesson-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Responsive: Ultrawide / Large Displays (min-width: 1600px) ─ */
+@media (min-width: 1600px) {
+  #sidebar {
+    width: 360px;
+  }
+
+  #lesson-panel {
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .term-wrapper {
+    max-width: 1400px;
+  }
+}
+
+/* ── Touch Target & Input Optimization ───────────────────────── */
+@media (pointer: coarse) {
+  .btn, .btn-topbar, .m-tab-btn, .term-action-btn, .modal-close {
+    min-height: 38px;
+  }
+
+  #hpanel-resizer {
+    height: 10px;
+  }
+
+  #hpanel-resizer::after {
+    height: 3px;
+  }
 }
 
 /* ── Animations ─────────────────────────────────────────── */

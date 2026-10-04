@@ -299,35 +299,47 @@
 
   function initResizer() {
     const resizer = document.getElementById('panel-resizer');
-    const lessonPane = document.getElementById('lesson-pane');
-    const mainSplit = document.getElementById('main-split');
-    if (!resizer || !lessonPane) return;
+    const sidebar = document.getElementById('sidebar');
+    if (!resizer || !sidebar) return;
 
     let isResizing = false;
-    let startX, startWidth;
+    let startX = 0, startWidth = 0;
 
-    resizer.addEventListener('mousedown', (e) => {
+    const startDrag = (clientX) => {
+      if (window.innerWidth <= 768) return;
       isResizing = true;
-      startX = e.clientX;
-      startWidth = lessonPane.offsetWidth;
+      startX = clientX;
+      startWidth = sidebar.offsetWidth;
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
-    });
+    };
 
-    document.addEventListener('mousemove', (e) => {
+    const dragMove = (clientX) => {
       if (!isResizing) return;
-      const dx = e.clientX - startX;
-      const newWidth = Math.max(280, Math.min(600, startWidth + dx));
-      lessonPane.style.width = newWidth + 'px';
-    });
+      const dx = clientX - startX;
+      const newWidth = Math.max(200, Math.min(480, startWidth + dx));
+      sidebar.style.width = newWidth + 'px';
+    };
 
-    document.addEventListener('mouseup', () => {
+    const endDrag = () => {
       if (isResizing) {
         isResizing = false;
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
       }
-    });
+    };
+
+    resizer.addEventListener('mousedown', (e) => startDrag(e.clientX));
+    document.addEventListener('mousemove', (e) => dragMove(e.clientX));
+    document.addEventListener('mouseup', endDrag);
+
+    resizer.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches[0]) startDrag(e.touches[0].clientX);
+    }, { passive: true });
+    document.addEventListener('touchmove', (e) => {
+      if (e.touches && e.touches[0]) dragMove(e.touches[0].clientX);
+    }, { passive: true });
+    document.addEventListener('touchend', endDrag);
   }
 
   // ── Sidebar Mobile ─────────────────────────────────────────────────────────

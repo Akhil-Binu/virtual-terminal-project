@@ -40,10 +40,23 @@
       </div>
     </div>
 
+    <!-- Mobile Screen View Switcher (visible on mobile / small screens) -->
+    <div id="mobile-view-tabs" class="mobile-only" role="tablist" aria-label="Mobile View Mode">
+      <button class="m-tab-btn" data-view="lesson" title="Lesson Only">📖 Lesson</button>
+      <button class="m-tab-btn active" data-view="split" title="Split View">◫ Split</button>
+      <button class="m-tab-btn" data-view="terminal" title="Terminal CLI Only">💻 CLI</button>
+    </div>
+
     <div class="topbar-right">
-      <button class="btn-topbar" id="btn-open-cheatsheet" title="Linux Command Reference & Cheat Sheet">📚 Cheatsheet</button>
-      <button class="btn-topbar" onclick="window.resetProgress()" title="Reset all progress">↺ Reset</button>
-      <a class="btn-topbar" href="https://linux.die.net/man/" target="_blank" rel="noopener" title="Linux man pages reference">📖 Die.net Man</a>
+      <button class="btn-topbar" id="btn-open-cheatsheet" title="Linux Command Reference & Cheat Sheet">
+        <span class="btn-icon">📚</span><span class="btn-text">Cheatsheet</span>
+      </button>
+      <button class="btn-topbar" onclick="window.resetProgress()" title="Reset all progress">
+        <span class="btn-icon">↺</span><span class="btn-text">Reset</span>
+      </button>
+      <a class="btn-topbar desktop-only" href="https://linux.die.net/man/" target="_blank" rel="noopener" title="Linux man pages reference">
+        <span class="btn-icon">📖</span><span class="btn-text">Docs</span>
+      </a>
     </div>
   </header>
 
@@ -53,7 +66,10 @@
     <!-- ── Sidebar: Curriculum ──────────────────────────────── -->
     <nav id="sidebar" role="navigation" aria-label="Linux curriculum">
       <div class="sidebar-header">
-        <div class="sidebar-title">A to Z Curriculum</div>
+        <div class="sidebar-header-top">
+          <div class="sidebar-title">A to Z Curriculum</div>
+          <button id="sidebar-close-btn" class="sidebar-close-btn mobile-only" aria-label="Close sidebar">✕</button>
+        </div>
         <input
           type="text"
           class="sidebar-search"
@@ -147,39 +163,87 @@
     });
   }
 
-  // ── Horizontal Resizer ───────────────────────────────────────
+  // ── Touch & Mouse Horizontal Resizer ─────────────────────────
   (function initHResizer() {
     const resizer = document.getElementById('hpanel-resizer');
     const termPane = document.getElementById('terminal-pane');
-    const lessonPane = document.getElementById('lesson-pane');
     if (!resizer || !termPane) return;
 
     let isResizing = false;
-    let startY, startH;
+    let startY = 0, startH = 0;
 
-    resizer.addEventListener('mousedown', (e) => {
+    const startDrag = (clientY) => {
+      // Don't drag if in full lesson or full terminal view mode
+      const rightPane = document.getElementById('right-pane');
+      if (rightPane && (rightPane.classList.contains('view-lesson-only') || rightPane.classList.contains('view-terminal-only'))) return;
       isResizing = true;
-      startY = e.clientY;
+      startY = clientY;
       startH = termPane.offsetHeight;
       document.body.style.cursor = 'row-resize';
       document.body.style.userSelect = 'none';
-    });
+    };
 
-    document.addEventListener('mousemove', (e) => {
+    const dragMove = (clientY) => {
       if (!isResizing) return;
-      const dy = startY - e.clientY;
-      const newH = Math.max(150, Math.min(window.innerHeight * 0.75, startH + dy));
+      const dy = startY - clientY;
+      const minH = 120;
+      const maxH = Math.max(minH, window.innerHeight - 140);
+      const newH = Math.max(minH, Math.min(maxH, startH + dy));
       termPane.style.height = newH + 'px';
-    });
+    };
 
-    document.addEventListener('mouseup', () => {
+    const endDrag = () => {
       if (isResizing) {
         isResizing = false;
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
       }
+    };
+
+    resizer.addEventListener('mousedown', (e) => startDrag(e.clientY));
+    document.addEventListener('mousemove', (e) => dragMove(e.clientY));
+    document.addEventListener('mouseup', endDrag);
+
+    // Touch support for tablets & phones
+    resizer.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches[0]) startDrag(e.touches[0].clientY);
+    }, { passive: true });
+    document.addEventListener('touchmove', (e) => {
+      if (e.touches && e.touches[0]) dragMove(e.touches[0].clientY);
+    }, { passive: true });
+    document.addEventListener('touchend', endDrag);
+  })();
+
+  // ── Mobile Screen View Switcher ──────────────────────────────
+  (function initMobileViewSwitcher() {
+    const tabs = document.querySelectorAll('#mobile-view-tabs .m-tab-btn');
+    const rightPane = document.getElementById('right-pane');
+    if (!tabs.length || !rightPane) return;
+
+    window.setMobileView = function(view) {
+      tabs.forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
+      rightPane.classList.remove('view-lesson-only', 'view-terminal-only');
+
+      if (view === 'lesson') {
+        rightPane.classList.add('view-lesson-only');
+      } else if (view === 'terminal') {
+        rightPane.classList.add('view-terminal-only');
+        setTimeout(() => document.getElementById('term-hidden-input')?.focus(), 50);
+      }
+    };
+
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        window.setMobileView(btn.dataset.view);
+      });
     });
   })();
+
+  // ── Sidebar Close Button on Mobile ───────────────────────────
+  document.getElementById('sidebar-close-btn')?.addEventListener('click', () => {
+    document.getElementById('sidebar')?.classList.remove('sidebar-open');
+    document.getElementById('sidebar-overlay')?.classList.add('hidden');
+  });
 
   // ── Keyboard Shortcuts (global) ──────────────────────────────
   document.addEventListener('keydown', (e) => {
