@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinuxMaster — Interactive Linux Terminal Learning Platform</title>
+  <meta name="description" content="Learn Linux terminal commands step-by-step in a real-time simulated environment. A to Z curriculum from beginner to advanced.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐧</text></svg>">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Top Bar ──────────────────────────────────────────────── -->
+  <header id="topbar">
+    <div class="topbar-left">
+      <!-- Mobile sidebar toggle -->
+      <button id="sidebar-toggle" title="Toggle curriculum sidebar" aria-label="Toggle sidebar">☰</button>
+
+      <div class="topbar-logo">
+        <span class="logo-icon">🐧</span>
+        <span class="logo-text">Linux<span class="logo-accent">Master</span></span>
+      </div>
+
+      <div class="topbar-progress">
+        <div class="progress-bar-track" title="Lesson progress">
+          <div id="progress-bar-fill"></div>
+        </div>
+        <span id="progress-label" style="white-space:nowrap">0 / 26 Lessons</span>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <button class="btn-topbar" id="btn-open-cheatsheet" title="Linux Command Reference & Cheat Sheet">📚 Cheatsheet</button>
+      <button class="btn-topbar" onclick="window.resetProgress()" title="Reset all progress">↺ Reset</button>
+      <a class="btn-topbar" href="https://linux.die.net/man/" target="_blank" rel="noopener" title="Linux man pages reference">📖 Die.net Man</a>
+    </div>
+  </header>
+
+  <!-- ── Main Split ───────────────────────────────────────────── -->
+  <div id="main-split">
+
+    <!-- ── Sidebar: Curriculum ──────────────────────────────── -->
+    <nav id="sidebar" role="navigation" aria-label="Linux curriculum">
+      <div class="sidebar-header">
+        <div class="sidebar-title">A to Z Curriculum</div>
+        <input
+          type="text"
+          class="sidebar-search"
+          placeholder="Search lessons..."
+          id="sidebar-search"
+          aria-label="Search lessons"
+          oninput="filterLessons(this.value)"
+        >
+      </div>
+      <ul id="lesson-list" role="listbox" aria-label="Lesson list"></ul>
+    </nav>
+
+    <!-- ── Panel Resizer ────────────────────────────────────── -->
+    <div id="panel-resizer" role="separator" aria-label="Resize panels" tabindex="0"></div>
+
+    <!-- ── Right Pane ───────────────────────────────────────── -->
+    <div id="right-pane">
+
+      <!-- Lesson Content -->
+      <div id="lesson-pane" role="main" aria-label="Lesson content">
+        <div id="lesson-panel">
+          <!-- Rendered dynamically by app.js -->
+          <div style="text-align:center;padding:60px 20px;color:var(--fg-dim)">
+            <div style="font-size:4rem;margin-bottom:16px">🐧</div>
+            <h2 style="color:var(--fg);margin-bottom:8px">Welcome to LinuxMaster</h2>
+            <p>Select a lesson from the sidebar to start learning.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Horizontal Resizer -->
+      <div id="hpanel-resizer" role="separator" aria-label="Resize terminal"></div>
+
+      <!-- Terminal Pane -->
+      <div id="terminal-pane" role="region" aria-label="Interactive terminal">
+        <!-- Terminal component rendered here by terminal.js -->
+      </div>
+
+    </div><!-- /#right-pane -->
+
+  </div><!-- /#main-split -->
+
+</div><!-- /#app -->
+
+<!-- Cheatsheet Modal -->
+<div id="cheatsheet-modal" class="modal-backdrop hidden" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-title">🐧 Linux Command Reference & Cheat Sheet</div>
+      <button class="modal-close" id="btn-close-cheatsheet" aria-label="Close modal">×</button>
+    </div>
+    <div class="modal-search-row">
+      <input type="text" id="cheatsheet-search" placeholder="Search commands, flags or descriptions..." aria-label="Search cheatsheet">
+    </div>
+    <div class="modal-tabs" id="cheatsheet-tabs">
+      <button class="tab-btn active" data-cat="all">All</button>
+      <button class="tab-btn" data-cat="files">Files & Dirs</button>
+      <button class="tab-btn" data-cat="text">Text Processing</button>
+      <button class="tab-btn" data-cat="sys">System & Info</button>
+      <button class="tab-btn" data-cat="net">Networking</button>
+      <button class="tab-btn" data-cat="proc">Processes</button>
+      <button class="tab-btn" data-cat="users">Users & Perms</button>
+      <button class="tab-btn" data-cat="archive">Archiving</button>
+      <button class="tab-btn" data-cat="shell">Shell & Math</button>
+    </div>
+    <div class="modal-body" id="cheatsheet-content">
+      <!-- Generated dynamically by app.js -->
+    </div>
+  </div>
+</div>
+
+<!-- Mobile sidebar overlay -->
+<div id="sidebar-overlay" class="hidden" aria-hidden="true"></div>
+
+<!-- ── Scripts (order matters) ───────────────────────────────── -->
+<script src="js/utils.js"></script>
+<script src="js/vfs.js"></script>
+<script src="js/terminal.js"></script>
+<script src="js/commandParser.js"></script>
+<script src="js/curriculum.js"></script>
+<script src="js/app.js"></script>
+
+<!-- ── Inline Bootstrap Scripts ─────────────────────────────── -->
+<script>
+  // ── Lesson Search Filter ─────────────────────────────────────
+  function filterLessons(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('.lesson-item').forEach(li => {
+      const label = li.querySelector('.lesson-label').textContent.toLowerCase();
+      li.style.display = label.includes(q) ? '' : 'none';
+    });
+  }
+
+  // ── Horizontal Resizer ───────────────────────────────────────
+  (function initHResizer() {
+    const resizer = document.getElementById('hpanel-resizer');
+    const termPane = document.getElementById('terminal-pane');
+    const lessonPane = document.getElementById('lesson-pane');
+    if (!resizer || !termPane) return;
+
+    let isResizing = false;
+    let startY, startH;
+
+    resizer.addEventListener('mousedown', (e) => {
+      isResizing = true;
+      startY = e.clientY;
+      startH = termPane.offsetHeight;
+      document.body.style.cursor = 'row-resize';
+      document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      const dy = startY - e.clientY;
+      const newH = Math.max(150, Math.min(window.innerHeight * 0.75, startH + dy));
+      termPane.style.height = newH + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    });
+  })();
+
+  // ── Keyboard Shortcuts (global) ──────────────────────────────
+  document.addEventListener('keydown', (e) => {
+    // Ctrl+/ — focus terminal
+    if (e.ctrlKey && e.key === '/') {
+      e.preventDefault();
+      document.getElementById('term-hidden-input')?.focus();
+    }
+    // Escape — close mobile sidebar
+    if (e.key === 'Escape') {
+      document.getElementById('sidebar')?.classList.remove('sidebar-open');
+      document.getElementById('sidebar-overlay')?.classList.add('hidden');
+    }
+  });
+</script>
+
+</body>
+</html>
