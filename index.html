@@ -6,9 +6,11 @@
   <title>LinuxMaster — Interactive Linux Terminal Learning Platform</title>
   <meta name="description" content="Learn Linux terminal commands step-by-step in a real-time simulated environment. A to Z curriculum from beginner to advanced.">
 
-  <!-- Fonts -->
+  <!-- Performance & Fonts Preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Styles -->
@@ -18,6 +20,13 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐧</text></svg>">
 </head>
 <body>
+
+<!-- Ambient 3D Cyber Background -->
+<div class="ambient-3d-bg" id="ambient-3d-bg" aria-hidden="true">
+  <div class="cyber-grid-plane"></div>
+  <div class="ambient-glow orb-1"></div>
+  <div class="ambient-glow orb-2"></div>
+</div>
 
 <div id="app">
 
@@ -30,6 +39,11 @@
       <div class="topbar-logo">
         <span class="logo-icon">🐧</span>
         <span class="logo-text">Linux<span class="logo-accent">Master</span></span>
+      </div>
+
+      <div class="author-badge" title="Created by Akhil Binu">
+        <span class="author-prefix">Built by</span>
+        <span class="author-name">Akhil Binu</span>
       </div>
 
       <div class="topbar-progress">
@@ -48,6 +62,36 @@
     </div>
 
     <div class="topbar-right">
+      <!-- Theme Switcher -->
+      <div class="theme-dropdown-wrapper" id="theme-dropdown-wrapper">
+        <button class="btn-topbar btn-theme" id="btn-theme" title="Switch Theme (Cyberpunk, Dracula, Matrix, Tokyo)" aria-haspopup="true" aria-expanded="false">
+          <span class="btn-icon">🎨</span><span class="btn-text" id="theme-label">Cyberpunk</span><span class="dropdown-arrow">▾</span>
+        </button>
+        <div class="theme-menu hidden" id="theme-menu" role="menu">
+          <button class="theme-option active" data-theme="cyberpunk" role="menuitem">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #00f0ff, #a855f7);"></span>
+            <span>Cyberpunk Neon</span>
+          </button>
+          <button class="theme-option" data-theme="dracula" role="menuitem">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #bd93f9, #50fa7b);"></span>
+            <span>Dracula Classic</span>
+          </button>
+          <button class="theme-option" data-theme="matrix" role="menuitem">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #00ff88, #00e5ff);"></span>
+            <span>Midnight Matrix</span>
+          </button>
+          <button class="theme-option" data-theme="tokyo" role="menuitem">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #7aa2f7, #bb9af7);"></span>
+            <span>Tokyo Night</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3D FX Toggle -->
+      <button class="btn-topbar btn-3d-toggle active" id="btn-toggle-3d" title="Toggle 3D Visual Effects & Tilt">
+        <span class="btn-icon">✨</span><span class="btn-text">3D FX</span>
+      </button>
+
       <button class="btn-topbar" id="btn-open-cheatsheet" title="Linux Command Reference & Cheat Sheet">
         <span class="btn-icon">📚</span><span class="btn-text">Cheatsheet</span>
       </button>
@@ -154,16 +198,20 @@
 
 <!-- ── Inline Bootstrap Scripts ─────────────────────────────── -->
 <script>
-  // ── Lesson Search Filter ─────────────────────────────────────
+  // ── Lesson Search Filter (RAF Optimized) ─────────────────────
+  let filterRaf = null;
   function filterLessons(query) {
-    const q = query.toLowerCase();
-    document.querySelectorAll('.lesson-item').forEach(li => {
-      const label = li.querySelector('.lesson-label').textContent.toLowerCase();
-      li.style.display = label.includes(q) ? '' : 'none';
+    if (filterRaf) cancelAnimationFrame(filterRaf);
+    filterRaf = requestAnimationFrame(() => {
+      const q = query.toLowerCase();
+      document.querySelectorAll('.lesson-item').forEach(li => {
+        const label = li.querySelector('.lesson-label').textContent.toLowerCase();
+        li.style.display = label.includes(q) ? '' : 'none';
+      });
     });
   }
 
-  // ── Touch & Mouse Horizontal Resizer ─────────────────────────
+  // ── Touch & Mouse Horizontal Resizer (RAF Optimized) ─────────
   (function initHResizer() {
     const resizer = document.getElementById('hpanel-resizer');
     const termPane = document.getElementById('terminal-pane');
@@ -171,6 +219,7 @@
 
     let isResizing = false;
     let startY = 0, startH = 0;
+    let hResizeRaf = null;
 
     const startDrag = (clientY) => {
       // Don't drag if in full lesson or full terminal view mode
@@ -185,11 +234,16 @@
 
     const dragMove = (clientY) => {
       if (!isResizing) return;
-      const dy = startY - clientY;
-      const minH = 120;
-      const maxH = Math.max(minH, window.innerHeight - 140);
-      const newH = Math.max(minH, Math.min(maxH, startH + dy));
-      termPane.style.height = newH + 'px';
+      if (hResizeRaf) return;
+      hResizeRaf = requestAnimationFrame(() => {
+        hResizeRaf = null;
+        if (!isResizing) return;
+        const dy = startY - clientY;
+        const minH = 120;
+        const maxH = Math.max(minH, window.innerHeight - 140);
+        const newH = Math.max(minH, Math.min(maxH, startH + dy));
+        termPane.style.height = newH + 'px';
+      });
     };
 
     const endDrag = () => {

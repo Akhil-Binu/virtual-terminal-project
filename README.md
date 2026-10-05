@@ -141,12 +141,35 @@ virtual-terminal-project/
 
 ---
 
+### 🎨 4 High-Contrast Color Themes
+Switch themes anytime using the top navigation bar dropdown or let LinuxMaster remember your choice via `localStorage`:
+- **Cyberpunk Neon** *(Default)*: Electrifying cyan (`#00f0ff`), hot magenta (`#ff007f`), and deep matrix navy.
+- **Dracula Classic**: Beloved developer palette with vampire purples, soft pinks, and pastel greens.
+- **Midnight Matrix**: Pure phosphor green terminal aesthetic on deep obsidian blacks.
+- **Tokyo Night**: Soothing indigo blues, lavender purples, and soft cyan glows inspired by Tokyo city lights.
+
+### 👓 3D Visual Effects & Tactile Feedback
+- **Interactive 3D Parallax Tilt**: Cards and containers tilt dynamically with perspective depth and reactive specular glare as you glide your cursor over them.
+- **Ambient 3D Cyber Grid**: Animated perspective cyber grid plane receding into the horizon with dynamic floating ambient glow orbs.
+- **Retro CRT Screen Simulation**: Click the **📺 CRT** toggle in the terminal title bar to activate authentic curved scanlines, glass curvature, and phosphor luminescence.
+- **Tactile 3D Buttons**: Physical depth with micro-elevation, border glows, and tactile depression on click.
+- **Toggleable 3D Mode**: Click **✨ 3D FX** in the topbar to toggle 3D perspective tilts and ambient animations on/off anytime.
+
+### ⚡ Speed & Web Performance Optimization
+- **60–120 FPS Parallax Loop**: Micro-throttled via `requestAnimationFrame` with single-pass bounding rect caching on pointer entry (zero layout thrashing or synchronous reflows).
+- **CSS Containment**: Targeted `contain: layout style` and `contain: content` on dynamic lesson panels and terminal viewports prevent offscreen style recalculations.
+- **Network Optimization**: `preconnect` and `dns-prefetch` for Google Fonts reduces initial render latency.
+- **Debounced Inputs**: Search filters in both the lessons sidebar and 100+ command cheatsheet execute smoothly without blocking the main event thread.
+- **Accessible & Battery Friendly**: Respects system `prefers-reduced-motion` media queries and offers explicit toggles for low-power devices.
+
+---
+
 ## 🎨 Tech Stack
 
 - **Core**: Vanilla ECMAScript 2022+ / HTML5 / CSS3 (zero npm packages or compiler dependencies)
 - **Typography**: [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono) + [Inter](https://fonts.google.com/specimen/Inter)
-- **Palette**: Dark Mode / Dracula Aesthetic (`#282a36`, `#44475a`, `#50fa7b`, `#bd93f9`, `#ff79c6`, `#8be9fd`, `#ffb86c`)
-- **State Storage**: Native browser `localStorage`
+- **Themes**: Cyberpunk Neon, Dracula Classic, Midnight Matrix, and Tokyo Night
+- **State Storage**: Native browser `localStorage` (theme, 3D FX state, CRT state, VFS nodes, progress)
 
 ---
 

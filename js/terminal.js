@@ -47,12 +47,15 @@ class Terminal {
         </div>
         <div class="term-header-title">bash — <span style="opacity:0.65">user@linuxmaster</span></div>
         <div class="term-header-actions">
+          <button class="term-action-btn" id="btn-term-crt" title="Toggle 3D CRT Phosphor & Scanlines">📺 CRT</button>
           <button class="term-action-btn" id="btn-term-clear" title="Clear Terminal (Ctrl+L)">Clear</button>
           <button class="term-action-btn" id="btn-term-copy" title="Copy Output to Clipboard">Copy</button>
           <button class="term-action-btn" id="btn-term-fs" title="Fullscreen Terminal">⛶</button>
         </div>
       </div>
+      <div class="term-glare-overlay" aria-hidden="true"></div>
       <div class="term-wrapper" id="term-wrapper">
+        <div class="term-scanlines-layer hidden" id="term-scanlines" aria-hidden="true"></div>
         <div class="term-output" id="term-output" aria-live="polite"></div>
         <div class="term-input-row" id="term-input-row">
           <span class="term-prompt" id="term-prompt">${this._buildPromptHTML()}</span>
@@ -70,6 +73,26 @@ class Terminal {
     this._typedEl   = this.container.querySelector('#term-typed');
     this._cursorEl  = this.container.querySelector('#term-cursor');
     this._inputEl   = this.container.querySelector('#term-hidden-input');
+
+    // CRT 3D scanlines toggle
+    const crtBtn = this.container.querySelector('#btn-term-crt');
+    const scanlinesLayer = this.container.querySelector('#term-scanlines');
+    const termWrapper = this.container.querySelector('#term-wrapper');
+    if (crtBtn && scanlinesLayer && termWrapper) {
+      const savedCrt = localStorage.getItem('lm_crt') === 'true';
+      if (savedCrt) {
+        scanlinesLayer.classList.remove('hidden');
+        termWrapper.classList.add('crt-active');
+        crtBtn.classList.add('active');
+      }
+      crtBtn.addEventListener('click', () => {
+        const isNowActive = termWrapper.classList.toggle('crt-active');
+        scanlinesLayer.classList.toggle('hidden', !isNowActive);
+        crtBtn.classList.toggle('active', isNowActive);
+        localStorage.setItem('lm_crt', isNowActive ? 'true' : 'false');
+        this._focusInput();
+      });
+    }
 
     // Titlebar action handlers
     const clearAction = () => { this.clear(); this._focusInput(); };

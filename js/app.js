@@ -50,6 +50,10 @@
     // Persist VFS periodically
     setInterval(saveState, 10000);
 
+    // Initialize Theme Manager & 3D Parallax Effects
+    initThemeManager();
+    init3DParallaxEffects();
+
     // Handle panel resize
     initResizer();
 
@@ -297,6 +301,142 @@
 
   // ── Layout Resizer ─────────────────────────────────────────────────────────
 
+  // ── Theme Manager ──────────────────────────────────────────────────────────
+  function initThemeManager() {
+    const themeWrapper = document.getElementById('theme-dropdown-wrapper');
+    const themeBtn = document.getElementById('btn-theme');
+    const themeMenu = document.getElementById('theme-menu');
+    const themeLabel = document.getElementById('theme-label');
+    const themeOptions = document.querySelectorAll('.theme-option');
+
+    const themes = {
+      cyberpunk: 'Cyberpunk',
+      dracula: 'Dracula',
+      matrix: 'Matrix',
+      tokyo: 'Tokyo'
+    };
+
+    function applyTheme(name) {
+      if (!themes[name]) name = 'cyberpunk';
+      document.documentElement.setAttribute('data-theme', name);
+      localStorage.setItem('lm_theme', name);
+      if (themeLabel) themeLabel.textContent = themes[name];
+      themeOptions.forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.theme === name);
+      });
+    }
+
+    const savedTheme = localStorage.getItem('lm_theme') || 'cyberpunk';
+    applyTheme(savedTheme);
+
+    themeBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = themeMenu?.classList.toggle('hidden');
+      themeBtn.setAttribute('aria-expanded', !isHidden);
+    });
+
+    themeOptions.forEach(opt => {
+      opt.addEventListener('click', () => {
+        applyTheme(opt.dataset.theme);
+        themeMenu?.classList.add('hidden');
+        themeBtn?.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (themeWrapper && !themeWrapper.contains(e.target)) {
+        themeMenu?.classList.add('hidden');
+        themeBtn?.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  // ── 3D Parallax & Micro-Interaction Engine ────────────────────────────────
+  function init3DParallaxEffects() {
+    const btnToggle3D = document.getElementById('btn-toggle-3d');
+    let is3DEnabled = localStorage.getItem('lm_3dfx') !== 'false';
+
+    function set3DState(enabled) {
+      is3DEnabled = enabled;
+      localStorage.setItem('lm_3dfx', enabled ? 'true' : 'false');
+      document.body.classList.toggle('fx-3d-disabled', !enabled);
+      if (btnToggle3D) {
+        btnToggle3D.classList.toggle('active', enabled);
+        const statusSpan = btnToggle3D.querySelector('.btn-text');
+        if (statusSpan) statusSpan.textContent = `3D FX`;
+      }
+    }
+
+    set3DState(is3DEnabled);
+
+    btnToggle3D?.addEventListener('click', () => {
+      set3DState(!is3DEnabled);
+    });
+
+    // Check prefers-reduced-motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      set3DState(false);
+      return;
+    }
+
+    // High-performance event delegation for 3D card tilt
+    // Caches card rect on mouseenter so getBoundingClientRect() is NEVER called repeatedly on mousemove!
+    let activeCard = null;
+    let cardRect = null;
+    let rafId = null;
+
+    document.addEventListener('mouseover', (e) => {
+      if (!is3DEnabled) return;
+      const target = e.target.closest('.lesson-item, .lesson-task-box, .lesson-concept, .cheatsheet-card');
+      if (target && target !== activeCard) {
+        if (activeCard) activeCard.style.transform = '';
+        activeCard = target;
+        cardRect = target.getBoundingClientRect();
+      }
+    }, { passive: true });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!is3DEnabled || !activeCard || !cardRect) return;
+
+      if (rafId) return; // Throttled to display refresh rate
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        if (!activeCard || !cardRect) return;
+
+        const x = e.clientX - cardRect.left;
+        const y = e.clientY - cardRect.top;
+
+        // If cursor drifted outside card
+        if (x < -10 || x > cardRect.width + 10 || y < -10 || y > cardRect.height + 10) {
+          activeCard.style.transform = '';
+          activeCard = null;
+          cardRect = null;
+          return;
+        }
+
+        const normX = (x / cardRect.width) - 0.5;
+        const normY = (y / cardRect.height) - 0.5;
+        const maxDeg = 5;
+        const rotX = (-normY * maxDeg).toFixed(2);
+        const rotY = (normX * maxDeg).toFixed(2);
+
+        activeCard.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateZ(6px) scale3d(1.012, 1.012, 1.012)`;
+      });
+    }, { passive: true });
+
+    document.addEventListener('mouseout', (e) => {
+      if (!activeCard) return;
+      const related = e.relatedTarget;
+      if (!related || !activeCard.contains(related)) {
+        activeCard.style.transform = '';
+        activeCard = null;
+        cardRect = null;
+      }
+    }, { passive: true });
+  }
+
+  // ── Layout Resizer (RAF Optimized) ─────────────────────────────────────────
+
   function initResizer() {
     const resizer = document.getElementById('panel-resizer');
     const sidebar = document.getElementById('sidebar');
@@ -304,6 +444,7 @@
 
     let isResizing = false;
     let startX = 0, startWidth = 0;
+    let resizeRaf = null;
 
     const startDrag = (clientX) => {
       if (window.innerWidth <= 768) return;
@@ -316,9 +457,14 @@
 
     const dragMove = (clientX) => {
       if (!isResizing) return;
-      const dx = clientX - startX;
-      const newWidth = Math.max(200, Math.min(480, startWidth + dx));
-      sidebar.style.width = newWidth + 'px';
+      if (resizeRaf) return;
+      resizeRaf = requestAnimationFrame(() => {
+        resizeRaf = null;
+        if (!isResizing) return;
+        const dx = clientX - startX;
+        const newWidth = Math.max(200, Math.min(480, startWidth + dx));
+        sidebar.style.width = newWidth + 'px';
+      });
     };
 
     const endDrag = () => {
@@ -559,9 +705,13 @@
       if (e.target === modal) closeModal();
     });
 
+    let searchDebounce = null;
     searchInput?.addEventListener('input', (e) => {
-      searchQuery = e.target.value.trim();
-      renderCards();
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => {
+        searchQuery = e.target.value.trim();
+        renderCards();
+      }, 40);
     });
 
     tabBtns.forEach(btn => {
