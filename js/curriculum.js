@@ -17,29 +17,52 @@ const CURRICULUM = [
   <li><strong>Absolute Path</strong> — starts from the root <code>/</code> (e.g., <code>/home/user/Documents</code>)</li>
   <li><strong>Relative Path</strong> — relative to your current location (e.g., <code>Documents</code> or <code>../Downloads</code>)</li>
 </ul>
-<p>Special path symbols:</p>
+<p>Special path symbols used in navigation:</p>
 <ul>
-  <li><code>.</code> — current directory</li>
-  <li><code>..</code> — parent directory</li>
-  <li><code>~</code> — your home directory (<code>/home/user</code>)</li>
+  <li><code>.</code> — current directory (e.g., <code>cd .</code>, <code>ls -a .</code>)</li>
+  <li><code>..</code> — parent directory (e.g., <code>cd ..</code> moves up one level)</li>
+  <li><code>~</code> — your home directory (<code>/home/user</code>, e.g., <code>cd ~</code> or <code>cd</code>)</li>
+  <li><code>/</code> — root filesystem directory (e.g., <code>cd /</code>)</li>
+  <li><code>-</code> — previous directory (e.g., <code>cd -</code> switches back)</li>
 </ul>
+<h4>Essential Navigation Commands with Symbols:</h4>
+<table style="width:100%;border-collapse:collapse;margin:8px 0;font-size:0.9em">
+  <tr style="border-bottom:1px solid #44475a;color:#bd93f9">
+    <th style="text-align:left;padding:5px">Command</th>
+    <th style="text-align:left;padding:5px">Description</th>
+  </tr>
+  <tr><td style="padding:5px"><code>cd /etc</code></td><td style="padding:5px">Navigate using an absolute path from root <code>/</code></td></tr>
+  <tr><td style="padding:5px"><code>cd ..</code></td><td style="padding:5px">Navigate up to parent directory</td></tr>
+  <tr><td style="padding:5px"><code>cd .</code></td><td style="padding:5px">Stay in current directory</td></tr>
+  <tr><td style="padding:5px"><code>cd ~</code> or <code>cd</code></td><td style="padding:5px">Return to home directory (<code>/home/user</code>)</td></tr>
+  <tr><td style="padding:5px"><code>cd -</code></td><td style="padding:5px">Toggle back to the previous directory</td></tr>
+  <tr><td style="padding:5px"><code>ls -a</code></td><td style="padding:5px">Show hidden files including <code>.</code> and <code>..</code></td></tr>
+</table>
 <h4>Real-World Use Case</h4>
 <p>When writing shell scripts or configuring services, using absolute paths ensures the script works regardless of where it's run from.</p>
     `,
-    task: 'Navigate to <code>/etc</code> using an absolute path, then go back home using <code>~</code>.',
+    task: 'Navigate to <code>/etc</code> using an absolute path (<code>cd /etc</code>), then return home using <code>cd ~</code> (or <code>cd</code>).',
     taskCommands: ['cd /etc', 'cd ~'],
     hints: [
       'Type <code>cd /etc</code> to navigate using an absolute path.',
-      'Type <code>cd ~</code> or just <code>cd</code> to return to your home directory.',
+      'Type <code>cd ~</code> (or simply <code>cd</code>) to return to your home directory.',
+      'You can also try <code>cd ..</code> to go to the parent directory, or <code>cd -</code> to return to your previous directory!',
     ],
     solution: 'cd /etc\ncd ~',
     validate: (vfs, history) => {
       // Check that user visited /etc and returned to home
       const homePath = '/home/user';
-      const visitedEtc = history.some(cmd => cmd.trim().includes('cd /etc'));
-      return visitedEtc && (vfs.pwd() === homePath || history.some(cmd => cmd.trim().includes('cd ~') || cmd.trim() === 'cd'));
+      const visitedEtc = history.some(cmd => {
+        const c = cmd.trim();
+        return c === 'cd /etc' || c === 'cd /etc/' || c.startsWith('cd /etc');
+      });
+      const returnedHome = vfs.pwd() === homePath && history.some(cmd => {
+        const c = cmd.trim();
+        return c === 'cd ~' || c === 'cd' || c === 'cd /home/user' || c === '~' || c.startsWith('cd ~');
+      });
+      return visitedEtc && returnedHome;
     },
-    validateMessage: 'Navigate to /etc with an absolute path, then return home with cd ~'
+    validateMessage: 'Navigate to /etc with cd /etc, then return home with cd ~'
   },
 
   // ── B ─────────────────────────────────────────────────────────────────────

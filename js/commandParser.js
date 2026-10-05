@@ -112,6 +112,17 @@ class CommandParser {
     return result;
   }
 
+  _expandTildes(tokens) {
+    const home = this.vfs.getEnv('HOME') || '/home/user';
+    return tokens.map(tok => {
+      if (tok === '~') return home;
+      if (tok.startsWith('~/')) return home + tok.slice(1);
+      if (tok === '~user') return home;
+      if (tok.startsWith('~user/')) return home + tok.slice(5);
+      return tok;
+    });
+  }
+
   _executeStatement(rawInput) {
     const input = this._expandEnvVars(rawInput);
     // Handle pipes
@@ -145,7 +156,7 @@ class CommandParser {
 
       const { tokens: cleanTokens, redirectOut, redirectAppend, redirectFile } = Utils.parseRedirects(tokens);
       const cmd = cleanTokens[0];
-      const restTokens = cleanTokens.slice(1);
+      const restTokens = this._expandTildes(cleanTokens.slice(1));
       const { flags, args } = Utils.parseFlags(restTokens);
 
       let currentOutput = null;
@@ -371,15 +382,19 @@ class CommandParser {
     // Handle redirections
     const { tokens: cleanTokens, redirectOut, redirectAppend, redirectFile } = Utils.parseRedirects(tokens);
     const cmd = cleanTokens[0];
-    const restTokens = cleanTokens.slice(1);
+    const restTokens = this._expandTildes(cleanTokens.slice(1));
     const { flags, args } = Utils.parseFlags(restTokens);
 
     let output = this._runCommand(cmd, flags, args, input);
 
     // Apply redirection
     if ((redirectOut || redirectAppend) && redirectFile) {
+      let finalRedir = redirectFile;
+      const home = this.vfs.getEnv('HOME') || '/home/user';
+      if (finalRedir === '~') finalRedir = home;
+      else if (finalRedir.startsWith('~/')) finalRedir = home + finalRedir.slice(1);
       const content = (output || '') + '\n';
-      const result = this.vfs.writeFile(redirectFile, content, redirectAppend);
+      const result = this.vfs.writeFile(finalRedir, content, redirectAppend);
       if (!result.success) return this._err(result.error);
       return null; // Redirect suppresses terminal output
     }
@@ -391,6 +406,13 @@ class CommandParser {
 
   _runCommand(cmd, flags, args, rawInput) {
     switch (cmd) {
+      // ── Symbol Commands / Path Shortcuts ───────────────────────────────
+      case '..':     return this._cd(flags, ['..']);
+      case '...':    return this._cd(flags, ['../..']);
+      case '~':      return this._cd(flags, ['~']);
+      case '/':      return this._cd(flags, ['/']);
+      case '-':      return this._cd(flags, ['-']);
+
       case 'ls':     return this._ls(flags, args);
       case 'cd':     return this._cd(flags, args);
       case 'pwd':    return this._pwd();
@@ -533,8 +555,12 @@ class CommandParser {
       case 'umask':      return this._umask(flags, args);
       // ── Environment & Shell ──────────────────────────────────────────
       case 'printenv':   return this._printenv(flags, args);
-      case 'source':
-      case '.':          return this._source(flags, args);
+      case 'source':     return this._source(flags, args);
+      case '.':
+        if (!args.length) {
+          return `${this._err('bash: .: filename argument required')}\n<span class="term-dim">Tip: In paths, '.' refers to the current directory (e.g. <code>cd .</code> or <code>ls -a .</code>). To execute a script: <code>. &lt;filename&gt;</code></span>`;
+        }
+        return this._source(flags, args);
       case 'basename':   return this._basename(flags, args);
       case 'dirname':    return this._dirname(flags, args);
       case 'realpath':   return this._realpath(flags, args);
@@ -571,7 +597,13 @@ class CommandParser {
       case 'exit':
       case 'logout': this.terminal.appendLine('<span class="term-warn">Session would end here. Refresh to restart.</span>'); return null;
       case '':       return null;
-      default:       return this._err(`bash: ${cmd}: command not found`);
+      default: {
+        // If user typed a directory path directly (e.g. /etc, /tmp, Documents)
+        if (this.vfs.isDirectory(cmd)) {
+          return `${this._err(`bash: ${cmd}: Is a directory`)}\n<span class="term-dim">Tip: To navigate into this directory, use: <code>cd ${cmd}</code></span>`;
+        }
+        return this._err(`bash: ${cmd}: command not found`);
+      }
     }
   }
 
@@ -627,6 +659,7 @@ class CommandParser {
     const result = this.vfs.cd(target);
     if (!result.success) return this._err(result.error);
     if (this.terminal) this.terminal.updatePrompt();
+    if (result.printCwd) return `<span class="term-path">${Utils.escapeHtml(this.vfs.pwd())}</span>`;
     return null;
   }
 

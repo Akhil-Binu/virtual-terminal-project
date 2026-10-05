@@ -62,6 +62,7 @@ class VirtualFileSystem {
   constructor() {
     this._root = this._buildInitialTree();
     this._cwd = '/home/user'; // current working directory path string
+    this._oldCwd = '/home/user'; // previous working directory for cd -
     this._history = [];
     this._env = {
       HOME: '/home/user',
@@ -69,7 +70,8 @@ class VirtualFileSystem {
       SHELL: '/bin/bash',
       PATH: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
       TERM: 'xterm-256color',
-      HOSTNAME: 'linuxmaster'
+      HOSTNAME: 'linuxmaster',
+      OLDPWD: '/home/user'
     };
   }
 
@@ -139,8 +141,12 @@ class VirtualFileSystem {
     let path;
     if (inputPath.startsWith('/')) {
       path = inputPath;
-    } else if (inputPath.startsWith('~')) {
-      path = inputPath.replace('~', this._env.HOME);
+    } else if (inputPath === '~' || inputPath === '~user') {
+      path = this._env.HOME;
+    } else if (inputPath.startsWith('~/')) {
+      path = this._env.HOME + inputPath.slice(1);
+    } else if (inputPath.startsWith('~user/')) {
+      path = this._env.HOME + inputPath.slice(5);
     } else {
       path = this._cwd + '/' + inputPath;
     }
@@ -181,14 +187,33 @@ class VirtualFileSystem {
   pwd() { return this._cwd; }
 
   cd(target) {
-    if (!target || target === '~') {
+    if (target === '-') {
+      if (!this._oldCwd) {
+        return { success: false, error: 'cd: OLDPWD not set' };
+      }
+      const prev = this._cwd;
+      this._cwd = this._oldCwd;
+      this._oldCwd = prev;
+      this._env.OLDPWD = prev;
+      return { success: true, newCwd: this._cwd, printCwd: true };
+    }
+
+    const prevCwd = this._cwd;
+
+    if (!target || target === '~' || target === '~user') {
+      this._oldCwd = prevCwd;
+      this._env.OLDPWD = prevCwd;
       this._cwd = this._env.HOME;
       return { success: true };
     }
+
     const abs = this.resolvePath(target);
     const node = this._getNode(abs);
     if (!node) return { success: false, error: `cd: ${target}: No such file or directory` };
     if (!node.isDir()) return { success: false, error: `cd: ${target}: Not a directory` };
+
+    this._oldCwd = prevCwd;
+    this._env.OLDPWD = prevCwd;
     this._cwd = abs === '' ? '/' : abs;
     return { success: true };
   }
@@ -206,8 +231,19 @@ class VirtualFileSystem {
     let entries = Object.values(node.children);
     if (!flags.a) {
       entries = entries.filter(e => !e.name.startsWith('.'));
+      entries.sort((a, b) => a.name.localeCompare(b.name));
+    } else {
+      // In standard Linux, ls -a lists '.' (current directory) and '..' (parent directory)
+      const dotNode = new VFSNode('.', 'dir', '', node.permissions, node.owner, node.group);
+      dotNode.modifiedAt = node.modifiedAt;
+      const { parent } = this._getParentAndName(abs);
+      const parentNode = parent || node;
+      const dotDotNode = new VFSNode('..', 'dir', '', parentNode.permissions, parentNode.owner, parentNode.group);
+      dotDotNode.modifiedAt = parentNode.modifiedAt;
+
+      entries.sort((a, b) => a.name.localeCompare(b.name));
+      entries = [dotNode, dotDotNode, ...entries];
     }
-    entries.sort((a, b) => a.name.localeCompare(b.name));
     return { success: true, entries, isDir: true };
   }
 
@@ -482,7 +518,7 @@ class VirtualFileSystem {
         Object.entries(node.children).map(([k, v]) => [k, serializeNode(v)])
       ) : null
     });
-    return JSON.stringify({ root: serializeNode(this._root), cwd: this._cwd });
+    return JSON.stringify({ root: serializeNode(this._root), cwd: this._cwd, oldCwd: this._oldCwd });
   }
 
   static deserialize(json) {
@@ -503,7 +539,9 @@ class VirtualFileSystem {
     };
 
     vfs._root = deserializeNode(data.root);
-    vfs._cwd = data.cwd;
+    vfs._cwd = data.cwd || '/home/user';
+    vfs._oldCwd = data.oldCwd || '/home/user';
+    vfs._env.OLDPWD = vfs._oldCwd;
     return vfs;
   }
 

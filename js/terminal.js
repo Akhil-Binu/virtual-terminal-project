@@ -262,6 +262,7 @@ class Terminal {
   // ── Tab Autocomplete ───────────────────────────────────────────────────────
 
   _handleTab() {
+    const input = this._inputEl.value;
     const lastDelim = Math.max(input.lastIndexOf('|'), input.lastIndexOf(';'), input.lastIndexOf('&&'));
     const prefixBefore = lastDelim !== -1 ? input.slice(0, lastDelim + 1) + ' ' : '';
     const currentSegment = lastDelim !== -1 ? input.slice(lastDelim + 1).trimStart() : input;
