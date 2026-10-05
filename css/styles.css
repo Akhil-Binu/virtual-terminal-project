@@ -1728,9 +1728,9 @@ pre.term-top  {
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  width: 920px;
-  max-width: 95vw;
-  max-height: 85vh;
+  width: 1060px;
+  max-width: 96vw;
+  max-height: 88vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 240, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -1780,10 +1780,13 @@ pre.term-top  {
   padding: 12px 22px;
   border-bottom: 1px solid var(--border-dim);
   background: var(--bg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .modal-search-row input {
-  width: 100%;
+  flex: 1;
   background: var(--bg-card);
   border: 1px solid var(--border-dim);
   border-radius: var(--radius-sm);
@@ -1797,6 +1800,18 @@ pre.term-top  {
 .modal-search-row input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.cheatsheet-counter {
+  font-size: 0.74rem;
+  color: var(--fg-muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 5px 11px;
+  border-radius: 99px;
+  border: 1px solid var(--border-dim);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  user-select: none;
 }
 
 .modal-tabs {
@@ -1832,56 +1847,271 @@ pre.term-top  {
   overflow-y: auto;
   padding: 18px 22px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 16px;
   contain: content;
 }
 
+/* ── Rich Command Cards ──────────────────────────────────── */
 .cmd-card {
   background: var(--bg-card);
   border: 1px solid var(--border-dim);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
+  border-radius: var(--radius);
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 10px;
   cursor: pointer;
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  transform-style: preserve-3d;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  position: relative;
+  contain: layout style;
 }
 
 .cmd-card:hover {
   border-color: var(--accent);
-  transform: perspective(800px) translateY(-3px) translateZ(8px) scale(1.02);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6), 0 0 18px var(--accent-glow);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 16px var(--accent-glow);
+}
+
+.cmd-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cmd-card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .cmd-card-name {
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 1.05rem;
   color: var(--cyan);
-  font-size: 0.92rem;
-  text-shadow: 0 0 8px var(--accent-glow);
+  letter-spacing: -0.2px;
+  text-shadow: 0 0 10px var(--accent-glow);
+}
+
+.cmd-cat-badge {
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-dim);
+  color: var(--fg-dim);
+  user-select: none;
+}
+
+.cmd-cat-badge.cat-files   { color: #60a5fa; border-color: rgba(96, 165, 250, 0.3); background: rgba(96, 165, 250, 0.1); }
+.cmd-cat-badge.cat-text    { color: #34d399; border-color: rgba(52, 211, 153, 0.3); background: rgba(52, 211, 153, 0.1); }
+.cmd-cat-badge.cat-sys     { color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.1); }
+.cmd-cat-badge.cat-net     { color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.1); }
+.cmd-cat-badge.cat-proc    { color: #f43f5e; border-color: rgba(244, 63, 94, 0.3); background: rgba(244, 63, 94, 0.1); }
+.cmd-cat-badge.cat-users   { color: #c084fc; border-color: rgba(192, 132, 252, 0.3); background: rgba(192, 132, 252, 0.1); }
+.cmd-cat-badge.cat-archive { color: #f97316; border-color: rgba(249, 115, 22, 0.3); background: rgba(249, 115, 22, 0.1); }
+.cmd-cat-badge.cat-shell   { color: #a78bfa; border-color: rgba(167, 139, 250, 0.3); background: rgba(167, 139, 250, 0.1); }
+
+.cmd-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cmd-btn-action {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-dim);
+  color: var(--fg-dim);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.cmd-btn-action:hover {
+  background: var(--bg-hover);
+  color: var(--fg);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.cmd-btn-action.btn-run-cmd {
+  background: rgba(0, 240, 255, 0.1);
+  color: var(--accent);
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+.cmd-btn-action.btn-run-cmd:hover {
+  background: var(--accent);
+  color: var(--bg);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.cmd-btn-action.copied {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #34d399 !important;
+  border-color: #34d399 !important;
+}
+
+.cmd-syntax-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-dim);
+  border-radius: 5px;
+  padding: 5px 8px;
+  font-family: var(--font-mono);
+}
+
+.cmd-syntax-prefix {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--purple);
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+
+.cmd-syntax-code {
+  font-size: 0.78rem;
+  color: var(--fg);
+  word-break: break-all;
 }
 
 .cmd-card-desc {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--fg-dim);
   line-height: 1.45;
 }
 
-.cmd-card-example {
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
-  color: var(--green);
-  background: var(--bg);
-  padding: 4px 8px;
+.cmd-sub-heading {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--fg-muted);
+  margin-bottom: 5px;
+}
+
+.cmd-flags-wrap {
+  margin-top: 2px;
+}
+
+.cmd-flags-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cmd-flag-pill {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  background: rgba(255, 255, 255, 0.02);
   border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.cmd-flag-badge {
+  font-family: var(--font-mono);
+  color: var(--yellow);
+  font-weight: 700;
+  font-size: 0.74rem;
+  flex-shrink: 0;
+}
+
+.cmd-flag-text {
+  color: var(--fg-dim);
+  font-size: 0.73rem;
+}
+
+.cmd-example-section {
+  background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--border-dim);
-  margin-top: 4px;
-  white-space: pre-wrap;
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.cmd-example-code-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  padding: 5px 8px;
+}
+
+.cmd-example-code-bar code {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--green);
   word-break: break-all;
+}
+
+.cmd-code-run-btn {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 3px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.cmd-code-run-btn:hover {
+  background: var(--accent);
+  color: var(--bg);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.cmd-example-explain {
+  font-size: 0.74rem;
+  color: var(--fg-muted);
+  font-style: italic;
+  line-height: 1.35;
+}
+
+.cmd-tip-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  background: rgba(250, 204, 21, 0.08);
+  border: 1px solid rgba(250, 204, 21, 0.25);
+  border-radius: 5px;
+  padding: 6px 9px;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--fg-dim);
+}
+
+.cmd-tip-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cmd-tip-body strong {
+  color: var(--yellow);
 }
 
 /* ── 3D Disabled / Low Power Performance Mode ─────────────── */
