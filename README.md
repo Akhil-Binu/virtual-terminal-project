@@ -1,7 +1,8 @@
 # LinuxMaster 🐧
 
-**Interactive Linux Terminal Learning Platform** — Master Linux commands from A to Z in a real-time, browser-based simulated terminal environment.
+**Interactive Linux Terminal Learning Platform** — Master Linux commands from A to Z in a real-time, browser-based simulated terminal environment. An open-source educational project built by **Akhil Binu**.
 
+[![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://opensource.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Zero Build Steps](https://img.shields.io/badge/Build-Zero%20Dependencies-brightgreen.svg)](#-tech-stack)
 [![Commands](https://img.shields.io/badge/Commands-100%2B%20Supported-purple.svg)](#-supported-commands-100-commands)
@@ -209,6 +210,19 @@ In [`js/curriculum.js`](js/curriculum.js), append a new module object to the `CU
 
 ---
 
-## 📄 License
+## 🌐 Open Source & Contributing
 
-MIT License — Free to use, adapt, and distribute for personal and educational purposes.
+**LinuxMaster** is a 100% free, community-first **open-source project** built and maintained by **Akhil Binu**.
+
+We welcome contributions of all kinds! Whether you want to add more terminal commands, create new curriculum modules, refine responsive layouts, or report issues:
+
+1. **Fork the Repository**: Clone your own copy to experiment and innovate.
+2. **Submit Pull Requests**: Send in your improvements, bug fixes, or new features.
+3. **Open Issues**: Share command suggestions, edge cases, or UX enhancements.
+4. **Educational Use**: Free to use for universities, coding bootcamps, workshops, and self-taught learners worldwide.
+
+---
+
+## 📄 License & Open Source
+
+This project is licensed under the permissive **[MIT License](LICENSE)** — an OSI-approved open-source license. You are free to view, modify, distribute, and build upon this code for personal, educational, and commercial purposes.
